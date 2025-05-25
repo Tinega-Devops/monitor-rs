@@ -1,4 +1,3 @@
-// src/main.rs
 use chrono::Local;
 use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode};
 use crossterm::terminal::{
@@ -15,8 +14,16 @@ use std::sync::mpsc::{Receiver, channel};
 use std::thread;
 use std::time::Duration;
 
+mod alerting;
 mod metrics;
-mod ui;
+mod ui {
+    pub mod cpu_widget;
+    pub mod dashboard;
+    pub mod disk_widget;
+    pub mod memory_widget;
+    pub mod net_widget;
+    pub mod theme;
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Starting monitor-rs...");
@@ -28,12 +35,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut net = NetworkCollector::new();
 
     let (ui_tx, ui_rx) = channel();
-    let (alert_tx, _alert_rx) = channel();
+    let (alert_tx, alert_rx) = channel();
 
     // Spawn the UI thread
     thread::spawn(move || {
         if let Err(e) = launch_ui(ui_rx) {
             eprintln!("Error in UI thread: {}", e);
+        }
+    });
+
+    // Spawn the alert handling thread
+    thread::spawn(move || {
+        for snapshot in alert_rx {
+            alerting::handler::evaluate_alerts(&snapshot);
         }
     });
 
