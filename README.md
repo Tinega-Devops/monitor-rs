@@ -60,48 +60,27 @@ cargo run
 ## 🧱 Project Structure
 
 ```plaintext
-
 monitor-rs/
-
 ├── src/
-
-│ ├── main.rs # App entry point
-
-│ ├── metrics/ # System collectors and data snapshot
-
-│ │ ├── cpu.rs
-
-│ │ ├── disk.rs
-
-│ │ ├── memory.rs
-
-│ │ ├── network.rs
-
-│ │ └── snapshot.rs
-
-│ ├── alerting/ # Alerting rules and evaluation logic
-
-│ │ ├── handler.rs
-
-│ │ └── rules.rs
-
-│ └── ui/ # Terminal UI components
-
-│ ├── dashboard.rs
-
-│ ├── cpu_widget.rs
-
-│ ├── memory_widget.rs
-
-│ ├── disk_widget.rs
-
-│ ├── net_widget.rs
-
-│ └── theme.rs
-
-├── Cargo.toml # Dependencies and package config
-
-└── alerts.log # File where triggered alerts are logged
+│   ├── main.rs              # App entry point
+│   ├── metrics/             # System collectors and data snapshot
+│   │   ├── cpu.rs
+│   │   ├── disk.rs
+│   │   ├── memory.rs
+│   │   ├── network.rs
+│   │   └── snapshot.rs
+│   ├── alerting/            # Alerting rules and evaluation logic
+│   │   ├── handler.rs
+│   │   └── rules.rs
+│   └── ui/                  # Terminal UI components
+│       ├── dashboard.rs
+│       ├── cpu_widget.rs
+│       ├── memory_widget.rs
+│       ├── disk_widget.rs
+│       ├── net_widget.rs
+│       └── theme.rs
+├── Cargo.toml               # Dependencies and package config
+└── alerts.log               # File where triggered alerts are logged
 
 ```
 ---
