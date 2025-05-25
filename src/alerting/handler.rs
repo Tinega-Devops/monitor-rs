@@ -1,4 +1,4 @@
-use crate::alerting::rules::{AlertRule, default_rules};
+use crate::alerting::rules::default_rules;
 use crate::metrics::snapshot::MetricSnapshot;
 use std::fs::OpenOptions;
 use std::io::Write;
