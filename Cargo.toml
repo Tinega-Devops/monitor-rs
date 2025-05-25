@@ -7,4 +7,6 @@ edition = "2024"
 serde = { version = "1.0", features = ["derive"] }
 chrono = { version = "0.4", features = ["serde"] }
 sysinfo = "0.35.1"
+crossterm = "0.29.0"
+ratatui = "0.29.0"
 

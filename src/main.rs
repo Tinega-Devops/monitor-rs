@@ -1,25 +1,43 @@
 // src/main.rs
 use chrono::Local;
+use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode};
+use crossterm::terminal::{
+    EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
+};
 use metrics::snapshot::MetricSnapshot;
 use metrics::{
     cpu::CpuCollector, disk::DiskCollector, memory::MemoryCollector, network::NetworkCollector,
 };
-use std::sync::mpsc::channel;
+use ratatui::Terminal;
+use ratatui::backend::CrosstermBackend;
+use std::io;
+use std::sync::mpsc::{Receiver, channel};
+use std::thread;
 use std::time::Duration;
 
 mod metrics;
+mod ui;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Starting monitor-rs...");
 
+    // Initialize collectors
     let mut cpu = CpuCollector::new();
     let mut mem = MemoryCollector::new();
     let mut disk = DiskCollector::new();
     let mut net = NetworkCollector::new();
 
-    let (ui_tx, _ui_rx) = channel();
+    let (ui_tx, ui_rx) = channel();
     let (alert_tx, _alert_rx) = channel();
 
+    // Spawn the UI thread
+    thread::spawn(move || {
+        if let Err(e) = launch_ui(ui_rx) {
+            eprintln!("Error in UI thread: {}", e);
+        }
+    });
+
+    // Metrics collection loop
     loop {
         let snapshot = MetricSnapshot {
             timestamp: Local::now(),
@@ -32,11 +50,41 @@ fn main() {
             net_tx: net.collect_tx(),
         };
 
-        println!("{:?}", snapshot); // For now, print to console
-
         ui_tx.send(snapshot.clone()).unwrap();
         alert_tx.send(snapshot).unwrap();
 
-        std::thread::sleep(Duration::from_millis(1000));
+        thread::sleep(Duration::from_secs(1));
     }
+}
+
+fn launch_ui(ui_rx: Receiver<MetricSnapshot>) -> Result<(), io::Error> {
+    enable_raw_mode()?;
+    let mut stdout = io::stdout();
+    crossterm::execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+
+    loop {
+        if event::poll(Duration::from_millis(200))? {
+            if let Event::Key(key) = event::read()? {
+                if key.code == KeyCode::Char('q') {
+                    break;
+                }
+            }
+        }
+
+        if let Ok(snapshot) = ui_rx.try_recv() {
+            terminal.draw(|f| ui::dashboard::render(f, &snapshot))?;
+        }
+    }
+
+    disable_raw_mode()?;
+    crossterm::execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )?;
+    terminal.show_cursor()?;
+
+    Ok(())
 }
