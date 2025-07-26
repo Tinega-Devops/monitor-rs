@@ -1,6 +1,4 @@
-// src/metrics/cpu.rs
 use sysinfo::System;
-
 pub struct CpuCollector {
     sys: System,
 }

@@ -1,4 +1,3 @@
-// src/metrics/network.rs
 use sysinfo::Networks;
 
 pub struct NetworkCollector {

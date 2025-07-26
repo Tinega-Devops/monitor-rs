@@ -1,4 +1,3 @@
-// src/metrics/disk.rs
 use sysinfo::System;
 
 pub struct DiskCollector {
